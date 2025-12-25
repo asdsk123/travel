@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 Tokyo</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Zen Maru Gothic"', '"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        muji: {
+                            bg: '#f7f6f2',      
+                            card: '#ffffff',
+                            text: '#3a3530',    
+                            sub: '#6b6661',     
+                            accent: '#a84a3e',  
+                            nav: '#e8e6e1',
+                            select: '#d6d3cd'
+                        }
+                    },
+                    boxShadow: {
+                        'card': '0 6px 16px -4px rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 隱藏捲軸但保留功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 頁面切換動畫 */
+        .view-section { display: none; animation: fadeIn 0.4s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 天氣區域樣式 */
+        .weather-box {
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e7e5e4;
+        }
+
+        /* 確保圖片在 notes 內能夠正確顯示 */
+        .notes-img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* 讓 input:number 移除上下箭頭 */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* 調整 placeholder 字體大小 */
+        #jpy-amount::placeholder {
+            font-size: 0.8em; /* 縮小 placeholder 字體 */
+        }
+        
+        /* 針對三欄佈局的調整 */
+        .prep-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .prep-list-grid label {
+            padding: 10px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-muji-bg text-muji-text font-sans antialiased pb-safe-bottom select-none">
+
+    <nav class="fixed top-0 w-full z-50 bg-white shadow-md border-b border-stone-200">
+        <div class="flex h-16">
+            <button onclick="switchMainTab('plan')" class="nav-main-btn flex-1 text-lg sm:text-xl lg:text-2xl font-bold text-muji-accent border-b-4 border-muji-accent bg-stone-50" data-target="plan">
+                <i class="fa-regular fa-calendar-check mr-1 sm:mr-2"></i>行程
+            </button>
+            <button onclick="switchMainTab('booking')" class="nav-main-btn flex-1 text-lg sm:text-xl lg:text-2xl font-bold text-stone-400 border-b-4 border-transparent hover:bg-stone-50" data-target="booking">
+                <i class="fa-solid fa-ticket mr-1 sm:mr-2"></i>預訂
+            </button>
+        </div>
+        <div class="flex h-12 border-t border-stone-100">
+            <button onclick="switchMainTab('others')" class="nav-main-btn flex-1 text-sm sm:text-base font-bold text-stone-400 border-b-4 border-transparent hover:bg-stone-50" data-target="others">
+                <i class="fa-solid fa-circle-info mr-1"></i>其他
+            </button>
+            <button onclick="switchMainTab('currency')" class="nav-main-btn flex-1 text-sm sm:text-base font-bold text-stone-400 border-b-4 border-transparent hover:bg-stone-50" data-target="currency">
+                <i class="fa-solid fa-money-bill-transfer mr-1"></i>匯率換算
+            </button>
+            <button onclick="switchMainTab('prep')" class="nav-main-btn flex-1 text-sm sm:text-base font-bold text-stone-400 border-b-4 border-transparent hover:bg-stone-50" data-target="prep">
+                <i class="fa-solid fa-suitcase-rolling mr-1"></i>行前準備
+            </button>
+        </div>
+    </nav>
+
+    <main class="pt-32 px-4 pb-10 max-w-3xl mx-auto min-h-screen">
+
+        <section id="view-plan" class="view-section active">
+            
+            <div class="sticky top-28 z-40 bg-muji-bg pt-2 pb-4 -mx-4 px-4 overflow-x-auto whitespace-nowrap no-scrollbar flex gap-3" id="day-buttons-container">
+                </div>
+
+            <div id="daily-content" class="mt-2 space-y-6">
+                </div>
+
+        </section>
+
+        <section id="view-booking" class="view-section">
+            
+            <div class="bg-white rounded-3xl p-6 shadow-card mb-8 border border-stone-100">
+                <h2 class="text-2xl font-bold text-muji-text mb-6 flex items-center border-b pb-4">
+                    <i class="fa-solid fa-plane-departure text-muji-accent mr-3"></i>航班資訊
+                </h2>
+                
+                <div class="mb-6">
+                    <div class="bg-blue-50 text-blue-800 px-4 py-2 rounded-lg inline-block font-bold mb-3 text-lg">去程 2/12 (四)</div>
+                    <div class="flex items-center justify-between px-2">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold">09:30</div>
+                            <div class="text-lg text-stone-500">TPE 台北</div>
+                        </div>
+                        <div class="flex-1 px-4 text-center">
+                            <div class="text-stone-400 text-lg mb-1"><i class="fa-solid fa-plane"></i> CI 0100</div>
+                            <div class="h-1 bg-stone-200 rounded-full"></div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold">13:30</div>
+                            <div class="text-lg text-stone-500">NRT 成田</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="bg-orange-50 text-orange-800 px-4 py-2 rounded-lg inline-block font-bold mb-3 text-lg">回程 2/18 (三)</div>
+                    <div class="flex items-center justify-between px-2">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold">17:45</div>
+                            <div class="text-lg text-stone-500">NRT 成田</div>
+                        </div>
+                        <div class="flex-1 px-4 text-center">
+                            <div class="text-stone-400 text-lg mb-1"><i class="fa-solid fa-plane"></i> CI 0105</div>
+                            <div class="h-1 bg-stone-200 rounded-full"></div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold">20:55</div>
+                            <div class="text-lg text-stone-500">TPE 台北</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 shadow-card mb-8 border border-stone-100">
+                <h2 class="text-2xl font-bold text-muji-text mb-6 flex items-center border-b pb-4">
+                    <i class="fa-solid fa-hotel text-muji-accent mr-3"></i>住宿資訊
+                </h2>
+                
+                <div class="mb-6 bg-stone-50 rounded-2xl p-5">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg font-bold text-stone-600">橫濱 (4晚)</span>
+                        <span class="bg-stone-200 px-3 py-1 rounded text-stone-600 font-bold">2/12 - 2/16</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-muji-text mb-2">Westin Hotel Yokohama</h3>
+                    <p class="text-lg text-stone-500">ウェスティンホテル横浜</p>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Westin+Hotel+Yokohama" target="_blank" class="mt-4 inline-flex items-center text-blue-600 font-bold text-lg bg-white px-4 py-2 rounded-xl shadow-sm border">
+                        <i class="fa-solid fa-map-location-dot mr-2"></i>導航
+                    </a>
+                </div>
+
+                <div class="bg-stone-50 rounded-2xl p-5">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg font-bold text-stone-600">河口湖 (2晚)</span>
+                        <span class="bg-stone-200 px-3 py-1 rounded text-stone-600 font-bold">2/16 - 2/18</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-muji-text mb-2">若草の宿 丸栄</h3>
+                    <p class="text-lg text-stone-500">Wakakusa no Yado Maruei</p>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Wakakusa+no+Yado+Maruei" target="_blank" class="mt-4 inline-flex items-center text-blue-600 font-bold text-lg bg-white px-4 py-2 rounded-xl shadow-sm border">
+                        <i class="fa-solid fa-map-location-dot mr-2"></i>導航
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-3xl p-6 shadow-card mb-8 border border-stone-100">
+                <h2 class="text-2xl font-bold text-muji-text mb-6 flex items-center border-b pb-4">
+                    <i class="fa-solid fa-utensils text-green-600 mr-3"></i>餐廳預約
+                </h2>
+                
+                <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg font-bold text-stone-600">2/14 (六) 晚餐</span>
+                        <span class="bg-green-200 px-3 py-1 rounded text-green-800 font-bold">18:00</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-muji-text mb-2">うず潮屋 関内店</h3>
+                    <p class="text-lg text-stone-500">預約：7大2小 (包廂)</p>
+                    <div class="mt-4 p-3 bg-white rounded-xl border border-stone-200 text-lg text-stone-600 leading-relaxed">
+                        **注意事項：**<br>
+                        因沒有日本國內電話，需前一週再打去與對方確認預約。<br>
+                        電話：<span class="font-mono text-red-500"> (002或009)+81 45 664 5368</span>
+                    </div>
+                    <a href="https://maps.app.goo.gl/KLAqJ5vG9ZFvZRK3A" target="_blank" class="mt-4 inline-flex items-center text-blue-600 font-bold text-lg bg-white px-4 py-2 rounded-xl shadow-sm border">
+                        <i class="fa-solid fa-map-location-dot mr-2"></i>導航
+                    </a>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 shadow-card mb-8 border-2 border-muji-accent">
+                <h2 class="text-2xl font-bold text-muji-text mb-4 flex items-center border-b pb-4 text-muji-accent">
+                    <i class="fa-solid fa-car-side mr-3"></i>租車預約單
+                </h2>
+                
+                <div class="space-y-4 text-lg">
+                    <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                        <div class="text-stone-500 text-base mb-1">預約號碼 (予約番号)</div>
+                        <div class="text-4xl font-black font-mono tracking-wider text-stone-800">99763076900</div>
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                         <div class="flex-1 bg-stone-50 p-4 rounded-xl">
+                            <div class="text-stone-500 text-base mb-1"><i class="fa-regular fa-calendar mr-1"></i>取車 (出発)</div>
+                            <div class="text-2xl font-bold text-muji-text">2/16 (一) 12:00</div>
+                        </div>
+                        <div class="flex-1 bg-stone-50 p-4 rounded-xl">
+                            <div class="text-stone-500 text-base mb-1"><i class="fa-regular fa-calendar-check mr-1"></i>還車 (返却)</div>
+                            <div class="text-2xl font-bold text-muji-text">2/18 (三) 14:00</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="font-bold mb-2"><i class="fa-solid fa-shop mr-2"></i>Toyota Rent a Car 富士河口湖店</div>
+                        <div class="text-stone-500 ml-6">08:00-20:00</div>
+                        <div class="text-stone-500 ml-6 font-mono">TEL: 0555-72-1100</div>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Toyota+Rent+a+Car+Fujikawaguchiko" target="_blank" class="mt-3 ml-6 inline-block text-blue-600 underline">開啟地圖</a>
+                    </div>
+
+                    <div class="border-t border-dashed border-stone-300 pt-4 mt-2">
+                        <div class="flex justify-between items-end">
+                            <span class="text-stone-500">總金額 (税込)</span>
+                            <span class="text-3xl font-bold text-muji-accent">¥68,486</span>
+                        </div>
+                        <div class="text-right text-stone-400 text-sm mt-1">(含消費稅 ¥6,226)</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="view-others" class="view-section">
+            
+            <a href="https://docs.google.com/spreadsheets/d/1EnyisnKZnu_X1lp6rUfRt3McB9iAST5UOo5ybhxSTHo/edit?usp=sharing" target="_blank" class="block w-full bg-yellow-100 hover:bg-yellow-200 border-2 border-yellow-300 rounded-3xl p-6 mb-8 text-center shadow-card transition transform active:scale-95">
+                <i class="fa-solid fa-cart-shopping text-4xl text-yellow-600 mb-2"></i>
+                <div class="text-2xl font-bold text-yellow-800">買買清單</div>
+                <div class="text-yellow-700 text-base">點擊查看 Excel 表格</div>
+            </a>
+            
+            <a href="https://www.callingtaiwan.com.tw/%E6%97%A5%E6%9C%AC%E8%97%A5%E5%A6%9D%E5%84%AA%E6%83%A0%E5%88%B8/" target="_blank" class="block w-full bg-pink-100 hover:bg-pink-200 border-2 border-pink-300 rounded-3xl p-6 mb-8 flex items-center shadow-card transition">
+                <div class="w-14 h-14 bg-pink-200 rounded-full flex items-center justify-center mr-4 text-pink-600 text-2xl">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-pink-800">日本藥妝店Coupon</div>
+                    <div class="text-pink-700 text-base">結帳前打開</div>
+                </div>
+            </a>
+
+            <a href="https://www.jma.go.jp/bosai/forecast/" target="_blank" class="block w-full bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 rounded-3xl p-6 mb-4 flex items-center shadow-card">
+                <div class="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mr-4 text-blue-600 text-2xl">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-blue-800">日本氣象廳</div>
+                    <div class="text-blue-600 text-base">查看最新天氣預報</div>
+                </div>
+            </a>
+            
+            <a href="https://www.funliday.com/posts/japan-taxfree-2026/" target="_blank" class="block w-full bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 rounded-3xl p-6 mb-4 flex items-center shadow-card transition">
+                <div class="w-14 h-14 bg-purple-200 rounded-full flex items-center justify-center mr-4 text-purple-600 text-2xl">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-purple-800">2026日本退稅新制</div>
+                    <div class="text-purple-700 text-base">最新退稅規定</div>
+                </div>
+            </a>
+            
+            <a href="https://tokiomarinenichido.jp/zh-hant/china2/" target="_blank" class="block w-full bg-red-50 hover:bg-red-100 border-2 border-red-200 rounded-3xl p-6 mb-8 flex items-center shadow-card transition">
+                <div class="w-14 h-14 bg-red-200 rounded-full flex items-center justify-center mr-4 text-red-600 text-2xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-red-800">保險:東京海上日動</div>
+                    <div class="text-red-700 text-base">保險公司官網</div>
+                </div>
+            </a>
+
+
+            <div class="bg-white rounded-3xl p-6 shadow-card border border-stone-200">
+                <h2 class="text-2xl font-bold text-muji-text mb-6 flex items-center">
+                    <i class="fa-solid fa-phone-volume text-red-500 mr-3"></i>緊急聯絡
+                </h2>
+                <div class="space-y-4 text-xl">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <span class="text-stone-600">警察局</span>
+                        <span class="font-bold text-3xl font-mono text-muji-text">110</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <span class="text-stone-600">火警 / 救護車</span>
+                        <span class="font-bold text-3xl font-mono text-muji-text">119</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-stone-600">旅外國人急難救助</span>
+                    </div>
+                    <div class="text-right">
+                        <a href="tel:0800085095" class="inline-block bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-2xl font-mono">0800-085-095</a>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+        <section id="view-currency" class="view-section">
+            <div class="bg-white rounded-3xl p-6 shadow-card mb-8 border border-stone-100">
+                <h2 class="text-3xl font-bold text-muji-text mb-6 flex items-center">
+                    <i class="fa-solid fa-hand-holding-dollar text-green-500 mr-3"></i>日圓 <i class="fa-solid fa-right-long mx-2 text-2xl text-stone-400"></i> 台幣 換算
+                </h2>
+
+                <div class="mb-6">
+                    <label for="exchange-rate" class="block text-lg font-bold text-stone-600 mb-2">當前匯率 (日圓1元 = 台幣)</label>
+                    <input type="number" id="exchange-rate" value="0.22" step="0.001"
+                           class="w-full text-3xl font-mono p-4 border-2 border-stone-300 rounded-xl focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+                           oninput="calculateCurrency()">
+                </div>
+
+                <div class="mb-8 p-4 bg-green-50 border-2 border-green-100 rounded-2xl">
+                    <label for="jpy-amount" class="block text-lg font-bold text-stone-600 mb-2">日圓金額 (JPY)</label>
+                    <div class="relative">
+                        <input type="number" id="jpy-amount" value="" placeholder="請輸入日圓金額" 
+                               class="w-full text-5xl font-black font-mono p-4 pr-16 border-none bg-transparent focus:outline-none text-muji-text"
+                               oninput="calculateCurrency()">
+                        <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl text-stone-400">¥</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 bg-muji-accent rounded-3xl text-white shadow-xl">
+                    <div class="text-lg font-bold mb-2 flex items-center">
+                        <i class="fa-solid fa-coins mr-2"></i> 換算台幣金額 (TWD)
+                    </div>
+                    <div id="twd-result" class="text-5xl font-black font-mono tracking-wide">
+                        0
+                    </div>
+                    <div class="text-right text-lg mt-2 font-bold">NTD</div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="view-prep" class="view-section">
+            <div class="bg-white rounded-3xl p-6 shadow-card mb-8 border border-stone-100">
+                <h2 class="text-3xl font-bold text-muji-text mb-6 flex items-center border-b pb-4">
+                    <i class="fa-solid fa-list-check text-green-600 mr-3"></i>行前準備清單
+                </h2>
+                
+                <h3 class="text-xl font-bold text-muji-text mb-4 flex items-center mt-6">
+                    <i class="fa-solid fa-plane-departure text-muji-accent mr-2"></i> 事前準備
+                </h3>
+                <div class="prep-list-grid mb-8">
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">填寫Visit Japan</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">申請網路或Esim</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">小兔子住宿</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">確認護照效期</span>
+                    </label>
+                </div>
+
+                <h3 class="text-xl font-bold text-muji-text mb-4 flex items-center border-t border-stone-200 pt-6">
+                    <i class="fa-solid fa-box-open text-green-600 mr-2"></i> 攜帶物品
+                </h3>
+                <div class="prep-list-grid">
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">當地貨幣</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">一些台幣</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">個人藥品</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">護唇膏 (夾鏈袋)</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">乳液 (夾鏈袋)</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">充電線</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">個人衣物</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">AirTag</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">購物袋</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">髒衣袋</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">壓力襪</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">盥洗用品 (牙刷、牙膏)</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">口罩</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">耳機</span>
+                    </label>
+                    <label class="flex items-center bg-stone-50 rounded-xl hover:bg-stone-100 transition cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 text-muji-accent bg-white border-stone-300 rounded focus:ring-muji-accent mr-3 flex-shrink-0">
+                        <span class="font-bold text-muji-text">耳塞</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+    <script>
+        // --- DATA (UPDATED with full details, hours, and notes) ---
+        const tripData = [
+            {
+                date: "2/12", week: "(四)", dayTitle: "Day 1",
+                weather: { icon: "fa-sun", color: "text-orange-400", status: "晴れ", rain: "0%", high: "12", low: "5" },
+                events: [
+                    { time: "13:30", title: "🛬 抵達 成田機場", type: "transport", notes: "準備入境、領取行李" },
+                    { time: "16:00", title: "🏨 抵達飯店 (Westin)", type: "hotel", location: "ウェスティンホテル横浜", mapUrl: "https://maps.app.goo.gl/pfBbnYJjdAkG6RvF8", notes: "Check-in 休息一下" },
+                    { time: "18:00", title: "🍽️ 晚餐自理", type: "food", notes: "1. 麥當勞(步行12分)\n2. ナプレ（横浜高島屋 8F）", location: "Yokohama Takashimaya / McDonald's", mapUrl: "https://maps.app.goo.gl/F4yboUt5R9q4nCQw6" }
+                ]
+            },
+            {
+                date: "2/13", week: "(五)", dayTitle: "Day 2",
+                weather: { icon: "fa-cloud", color: "text-stone-400", status: "曇り", rain: "20%", high: "11", low: "6" },
+                events: [
+                    { time: "10:00", title: "🪐 星空投影", type: "spot", location: "コニカミノルタプラネタリアYOKOHAMA", hours: "10:00-21:00", mapUrl: "https://maps.app.goo.gl/2LyDhMKE9fm6fXmaA", notes: "需確認上映時間" },
+                    { time: "12:00", title: "⛩️ 伊勢山皇大神宮", type: "spot", location: "Iseyama Kotai Jingu", hours: "09:00-19:00", mapUrl: "https://maps.app.goo.gl/gsSUqaMHnR338kwr6", notes: "從飯店步行15分鐘" }, 
+                    { time: "14:00", title: "⛩️ 關帝廟", type: "spot", location: "Yokohama Kanteibyo", hours: "09:00-19:00", mapUrl: "https://maps.app.goo.gl/mv14xLr6VthRKt7J6", notes: "從伊勢山皇大神宮搭車約30分鐘" }, 
+                    { time: "16:00", title: "🏛️ 橫濱開港資料館", type: "spot", location: "Yokohama Archives of History", hours: "09:30-17:00", mapUrl: "https://maps.app.goo.gl/79LxXVaZYG67U8eS9", notes: "包含：橫濱市開港記念會館" },
+                    { 
+                        time: "18:00", 
+                        title: "🧱 紅磚倉庫 / 泡麵博物館", 
+                        type: "spot", 
+                        notes: "橫濱赤レンガ倉庫 (11：00-20：00)、合味道記念館 (10:00-18:00)", 
+                        location: "Yokohama Red Brick Warehouse / Cupnoodles Museum",
+                        mapUrl: "https://maps.app.goo.gl/2Q4DViqAJRksLvjR7",
+                        extraLinks: [
+                            { title: "Strawberry Festival2026", url: "https://www.yokohama-akarenga.jp/strawberryfes/", hours: "10:00~18:00", fee: "500円" }
+                        ]
+                    },
+                    { time: "20:00", title: "🍽️ 晚餐時間", type: "food", notes: "推薦餐廳：シンシヤ (17:00-23:00) 或 La Figlia Del Presidente (11:30-15:00 / 17:00-22:00)", mapUrl: "https://maps.app.goo.gl/VpfzxBNpbKpy9EDN9" }
+                ]
+            },
+            {
+                date: "2/14", week: "(六)", dayTitle: "Day 3",
+                weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "10%", high: "13", low: "5" },
+                events: [
+                    { 
+                        time: "10:30", 
+                        title: "🛍️ 丸井シティ / 購物時間", 
+                        type: "shopping", 
+                        notes: "寶可夢中心 8F (10:30-20:30)\n光之美少女 8F (10:30-20:30)\n駿河屋 7F (10:30-20:30)\nGood Smile B2 (10:30-20:30)",
+                        location: "Marui City Yokohama",
+                        mapUrl: "https://maps.app.goo.gl/DqvpBBwN3bin9nd29"
+                    },
+                    { 
+                        time: "14:00", 
+                        title: "🛍️ Bic Camera / ドン・キホーテ", 
+                        type: "shopping", 
+                        notes: "Bic Camera (10:00-21:00)\nドン・キホーテ 横浜西口店 (24小時營業)", 
+                        location: "Bic Camera / Don Quijote Yokohama Nishiguchi Store",
+                        mapUrl: "https://maps.app.goo.gl/S5fBnVPq3RDvKXw4A"
+                    },
+                    { 
+                        time: "17:00", 
+                        title: "🏛️ 圖坦卡門博物館", 
+                        type: "spot", 
+                        location: "The Westin Yokohama (nearby)", 
+                        hours: "11:00-18:00", 
+                        mapUrl: "https://maps.app.goo.gl/tNCATHA8hccCCk1K8",
+                        notes: "飯店隔壁" 
+                    },
+                    // 新增行程
+                    { 
+                        time: "18:00", 
+                        title: "🍽️ 晚餐：うず潮屋 関内店", 
+                        type: "food", 
+                        notes: "預約7大2小 (包廂)\n需前一週再致電確認：(002或009)+81 45 664 5368", 
+                        location: "うず潮屋 関内店", 
+                        mapUrl: "https://maps.app.goo.gl/KLAqJ5vG9ZFvZRK3A" 
+                    }
+                ]
+            },
+            {
+                date: "2/15", week: "(日)", dayTitle: "Day 4",
+                weather: { icon: "fa-sun", color: "text-orange-500", status: "快晴", rain: "0%", high: "14", low: "4" },
+                events: [
+                    { time: "09:20", title: "🛳️ 出發前往橫須賀", type: "transport", notes: "備註：橫濱 → 橫須賀 車程約 1 小時 10 分鐘" },
+                    { 
+                        time: "11:00", 
+                        title: "⚓ 軍港巡り", 
+                        type: "spot", 
+                        location: "Yokosuka Naval Port", 
+                        mapUrl: "https://maps.app.goo.gl/S9BMVtw7gDufcGMh9", 
+                        notes: "行程約 45 分鐘",
+                        extraLinks: [
+                            { title: "軍港巡り 官網", url: "https://yokosuka-gunko.jp/" }
+                        ]
+                    },
+                    { time: "12:30", title: "🍛 午餐: 海軍咖哩", type: "food", notes: "從軍港走約 15 分鐘", mapUrl: "https://maps.app.goo.gl/v6kx9q45aWDS6b4P7" },
+                    { time: "14:00", title: "🚢 三笠戰艦", type: "spot", location: "Mikasa Park", hours: "13:00-13:45 (預計停留時間)", mapUrl: "https://maps.app.goo.gl/4C2H3r3szSRerJbW7", notes: "從橫須賀中央搭公車約 10 分鐘" },
+                    { time: "16:00", title: "🛍️ 橫濱高島屋購物", type: "shopping", location: "Yokohama Takashimaya", mapUrl: "https://maps.app.goo.gl/9LX2rKjCQ3KYfGqy8", notes: "B1 伴手禮：\n1. 橫濱かをり\n2. 鎌倉紅谷\n3. 豊島屋\n4. エシレ パティスリーオブール\n\n餐廳 (可選)：AFURI（横浜ジョイナスB1）、ナプレ（高島屋8F）" }
+                ]
+            },
+            {
+                date: "2/16", week: "(一)", dayTitle: "Day 5",
+                extra: "除夕",
+                weatherSplit: {
+                    left: { title: "橫濱", icon: "fa-cloud", color: "text-stone-400", status: "曇り", rain: "30%", high: "10", low: "4" },
+                    right: { title: "河口湖", icon: "fa-snowflake", color: "text-blue-300", status: "雪", rain: "60%", high: "3", low: "-2" }
+                },
+                events: [
+                    { time: "", title: "🚗 前往河口湖", type: "transport", notes: "包車前往，時間彈性，準備辦理退房" },
+                    { time: "12:00", title: "🚙 租車取車 トヨタレンタカー富士河口湖", type: "transport", location: "Toyota Rent a Car 富士河口湖店", mapUrl: "https://maps.app.goo.gl/edaZMi9JmtxxyNdC7", notes: "預約番号: 99763076900" }, 
+                    { time: "15:00", title: "🏨 飯店 Check In 若草の宿 丸栄", type: "hotel", location: "若草の宿 丸栄", mapUrl: "https://maps.app.goo.gl/RSdqcU69z3aMMDxa7", notes: "入住溫泉飯店，準備吃年夜飯囉" } 
+                ]
+            },
+            {
+                date: "2/17", week: "(二)", dayTitle: "Day 6",
+                extra: "初一",
+                weather: { icon: "fa-mountain-sun", color: "text-orange-400", status: "晴れ", rain: "10%", high: "5", low: "-3" },
+                events: [
+                    { time: "09:00", title: "⛩️ 富士御室浅間神社", type: "spot", location: "Fujiomurosengen Shrine", hours: "09:00-16:00", mapUrl: "https://maps.app.goo.gl/wQEHmxRdc6X242a48", notes: "新年參拜。參拜後搭公車到河口湖站約 30 分鐘" },
+                    { time: "13:00", title: "🛍️ 河口湖車站週邊購物", type: "shopping", notes: "包含：食パン専門店FUJISAN SHOKUPAN (11:00-18:00)；富士山ぷりん (11:00-18:00)", location: "Kawaguchiko Station area", mapUrl: "https://maps.app.goo.gl/TZMj7FK4eUaVkibf9" }
+                ]
+            },
+            {
+                date: "2/18", week: "(三)", dayTitle: "Day 7",
+                weather: { icon: "fa-sun", color: "text-orange-500", status: "晴れ", rain: "0%", high: "11", low: "2" },
+                events: [
+                    { time: "14:00", title: "🚗 歸還租車", type: "transport", location: "Toyota Rent a Car 富士河口湖店", mapUrl: "https://maps.app.goo.gl/edaZMi9JmtxxyNdC7", notes: "請預留足夠時間還車" },
+                    { time: "17:45", title: "🛫 飛機起飛 回台灣", type: "transport", notes: "請提前抵達 NRT 成田機場" }
+                ]
+            }
+        ];
+
+        let currentDayIndex = 0;
+
+        // --- FUNCTIONS ---
+
+        // 1. Switch Main Tabs (Top Nav)
+        function switchMainTab(targetId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${targetId}`).classList.add('active');
+            
+            document.querySelectorAll('.nav-main-btn').forEach(btn => {
+                if(btn.dataset.target === targetId) {
+                    btn.classList.remove('text-stone-400', 'border-transparent');
+                    btn.classList.add('text-muji-accent', 'border-muji-accent', 'bg-stone-50');
+                } else {
+                    btn.classList.add('text-stone-400', 'border-transparent');
+                    btn.classList.remove('text-muji-accent', 'border-muji-accent', 'bg-stone-50');
+                }
+            });
+            window.scrollTo(0, 0);
+
+            // Special: If switching to currency tab, run calculation
+            if (targetId === 'currency') {
+                calculateCurrency();
+            }
+            
+            // Adjust scroll position for top nav with two rows
+            if (targetId === 'plan') {
+                document.querySelector('main').style.paddingTop = '8rem'; // Ensure enough space for two-row nav
+            } else {
+                document.querySelector('main').style.paddingTop = '8rem';
+            }
+        }
+
+        // 2. Render Day Buttons
+        function renderDayButtons() {
+            const container = document.getElementById('day-buttons-container');
+            container.innerHTML = tripData.map((day, index) => `
+                <button onclick="selectDay(${index})" 
+                    class="day-btn flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all duration-200 ${index === currentDayIndex ? 'bg-muji-text text-white border-muji-text shadow-lg transform scale-105' : 'bg-white text-stone-400 border-stone-200'}"
+                    id="day-btn-${index}">
+                    <span class="text-xs font-bold mb-1">${day.dayTitle}</span>
+                    <span class="text-xl font-bold font-sans">${day.date}</span>
+                </button>
+            `).join('');
+        }
+
+        // 3. Helper to generate weather HTML block
+        function getWeatherHTML(w) {
+            return `
+                <div class="weather-box flex flex-col items-center justify-center h-full">
+                    <div class="text-5xl mb-2 ${w.color}"><i class="fa-solid ${w.icon}"></i></div>
+                    
+                    <div class="text-lg font-bold text-stone-600 mb-1 flex items-center gap-2">
+                        ${w.status}
+                        <span class="text-blue-400 text-sm font-normal flex items-center">
+                            <i class="fa-solid fa-cloud-showers-heavy mr-1 text-xs"></i>${w.rain}
+                        </span>
+                    </div>
+
+                    <div class="text-2xl font-bold font-mono">
+                        <span class="text-red-500">${w.high}°</span> <span class="text-stone-300 mx-1">/</span> <span class="text-blue-500">${w.low}°</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 4. Select Day & Render Content
+        function selectDay(index) {
+            currentDayIndex = index;
+            
+            // Update Buttons Visual
+            document.querySelectorAll('.day-btn').forEach((btn, idx) => {
+                if(idx === index) {
+                    btn.className = "day-btn flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all duration-200 bg-muji-text text-white border-muji-text shadow-lg transform scale-105";
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    btn.className = "day-btn flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all duration-200 bg-white text-stone-400 border-stone-200";
+                }
+            });
+
+            // Render Itinerary Content
+            const day = tripData[index];
+            const content = document.getElementById('daily-content');
+            
+            // --- Weather Area HTML ---
+            let weatherAreaHtml = '';
+            
+            if (day.weatherSplit) {
+                // Day 5 special layout (2-column for split weather)
+                weatherAreaHtml = `
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <div class="text-base text-muji-text mb-1 font-bold">${day.weatherSplit.left.title}</div>
+                            ${getWeatherHTML(day.weatherSplit.left)}
+                        </div>
+                        <div>
+                            <div class="text-base text-muji-text mb-1 font-bold">${day.weatherSplit.right.title}</div>
+                            ${getWeatherHTML(day.weatherSplit.right)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Default layout (single weather box)
+                weatherAreaHtml = `
+                    <div class="mt-4 max-w-xs mx-auto">
+                        ${getWeatherHTML(day.weather)}
+                    </div>
+                `;
+            }
+
+            // Date Header (Centered layout)
+            let html = `
+                <div class="text-center pt-2 pb-4 animate-fadeIn">
+                    <h2 class="text-3xl font-bold text-muji-text mb-1">
+                        ${day.date} <span class="text-xl text-stone-500">${day.week}</span>
+                    </h2>
+                    ${day.extra ? `<span class="inline-block bg-red-100 text-red-600 px-3 py-1 rounded-full text-base font-bold mb-2">${day.extra}</span>` : ''}
+                    
+                    ${weatherAreaHtml}
+                </div>
+                
+                <div class="text-center pt-4 pb-4 border-b-2 border-muji-text border-opacity-10 mb-4">
+                    <img src="334537dd.png" alt="分隔線圖案" class="inline-block" style="width: initial; height: initial;">
+                </div>
+                <div class="space-y-6 pb-20 animate-fadeIn">
+            `;
+
+            // Events
+            html += day.events.map(event => {
+                // 所有行程都使用預設的淡灰色邊框/背景
+                let colorClass = "bg-stone-50 border-stone-200";
+                
+                // Map Button - Full width
+                // Uses the provided mapUrl first, then falls back to location search
+                const mapLink = event.mapUrl ? event.mapUrl : (event.location ? `https://maps.app.goo.gl/DqvpBBwN3bin9nd29${encodeURIComponent(event.location)}` : null);
+
+                const mapBtn = mapLink
+                    ? `<a href="${mapLink}" target="_blank" 
+                        class="mt-4 flex items-center justify-center w-full py-3 rounded-xl bg-white border border-stone-300 text-blue-600 font-bold text-lg active:bg-blue-50 transition">
+                        <i class="fa-solid fa-map-location-dot mr-2 text-xl"></i> 開啟地圖
+                       </a>` 
+                    : '';
+                    
+                // Extra Links (for Red Brick Warehouse & Naval Port)
+                let extraLinksHtml = '';
+                if (event.extraLinks && event.extraLinks.length > 0) {
+                    extraLinksHtml = event.extraLinks.map(link => {
+                        const info = link.hours ? `<span class="text-stone-500 text-sm ml-2">(${link.hours}${link.fee ? `, ${link.fee}` : ''})</span>` : '';
+                        return `
+                            <a href="${link.url}" target="_blank" 
+                               class="mt-3 flex items-center justify-center w-full py-3 rounded-xl bg-white border border-stone-300 text-green-600 font-bold text-lg active:bg-green-50 transition">
+                                <i class="fa-solid fa-link mr-2 text-xl"></i> ${link.title} ${info}
+                            </a>`;
+                    }).join('');
+                }
+
+
+                // Hours Display
+                const hoursHtml = event.hours ?
+                    `<div class="mt-2 text-sm font-bold text-muji-accent flex items-center bg-stone-100 px-3 py-1 rounded-full w-fit">
+                        <i class="fa-regular fa-clock mr-1"></i> 營業時間：${event.hours}
+                    </div>` : '';
+
+                // Notes/Remarks Display 
+                const notesHtml = event.notes ? 
+                    `<div class="mt-2 p-3 bg-white rounded-xl border border-stone-200 text-lg text-stone-600 leading-relaxed whitespace-pre-line">
+                        ${event.notes.replace(/\n/g, '<br>')}
+                    </div>` : '';
+
+                // Time Display
+                const timeDisplay = event.time 
+                    ? `<div class="text-lg font-bold font-mono text-muji-accent mb-1">${event.time}</div>`
+                    : '';
+
+                return `
+                    <div class="rounded-3xl p-6 border-2 ${colorClass} shadow-sm relative">
+                        ${timeDisplay}
+                        <h3 class="text-2xl font-bold text-muji-text leading-tight mb-2">${event.title}</h3>
+                        ${hoursHtml}
+                        ${notesHtml} 
+                        ${mapBtn}
+                        ${extraLinksHtml} 
+                    </div>
+                `;
+            }).join('');
+            
+            html += `</div>`; // Close the events container
+            content.innerHTML = html;
+        }
+
+        // 5. Currency Calculation Function
+        function calculateCurrency() {
+            const jpyInput = document.getElementById('jpy-amount');
+            const rateInput = document.getElementById('exchange-rate');
+            const resultDiv = document.getElementById('twd-result');
+            
+            const jpy = parseFloat(jpyInput.value) || 0;
+            const rate = parseFloat(rateInput.value) || 0.22; // Fallback to 0.22 if input is invalid/empty
+
+            const twd = jpy * rate;
+            
+            // Display result formatted as a whole number (for a cleaner look)
+            resultDiv.textContent = twd.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDayButtons();
+            selectDay(0);
+            
+            // Ensure first tab is active and padding is correct
+            switchMainTab('plan'); 
+        });
+
+    </script>
+</body>
+</html>
