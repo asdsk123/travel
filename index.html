@@ -282,7 +282,7 @@
                 </div>
             </a>
 
-            <a href="https://www.jma.go.jp/bosai/forecast/" target="_blank" class="block w-full bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 rounded-3xl p-6 mb-4 flex items-center shadow-card">
+            <a href="https://tenki.jp/forecast/3/17/4610/14100/10days.html" target="_blank" class="block w-full bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 rounded-3xl p-6 mb-4 flex items-center shadow-card">
                 <div class="w-14 h-14 bg-blue-200 rounded-full flex items-center justify-center mr-4 text-blue-600 text-2xl">
                     <i class="fa-solid fa-cloud-sun"></i>
                 </div>
@@ -476,7 +476,7 @@
         const tripData = [
             {
                 date: "2/12", week: "(四)", dayTitle: "Day 1",
-                weather: { icon: "fa-sun", color: "text-orange-400", status: "晴れ", rain: "0%", high: "12", low: "5" },
+                weather: { icon: "fa-cloud-showers-heavy", color: "text-blue-400", status: "曇時々雨", rain: "50%", high: "12", low: "5" },
                 events: [
                     { time: "13:30", title: "🛬 抵達 成田機場", type: "transport", notes: "準備入境、領取行李" },
                     { time: "16:00", title: "🏨 抵達飯店 (Westin)", type: "hotel", location: "ウェスティンホテル横浜", mapUrl: "https://maps.app.goo.gl/pfBbnYJjdAkG6RvF8", notes: "Check-in 休息一下" },
@@ -485,7 +485,7 @@
             },
             {
                 date: "2/13", week: "(五)", dayTitle: "Day 2",
-                weather: { icon: "fa-cloud", color: "text-stone-400", status: "曇り", rain: "20%", high: "11", low: "6" },
+                weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "40%", high: "13", low: "3" },
                 events: [
                     { time: "10:00", title: "🪐 星空投影", type: "spot", location: "コニカミノルタプラネタリアYOKOHAMA", hours: "10:00-21:00", mapUrl: "https://maps.app.goo.gl/2LyDhMKE9fm6fXmaA", notes: "需確認上映時間" },
                     { time: "12:00", title: "⛩️ 伊勢山皇大神宮", type: "spot", location: "Iseyama Kotai Jingu", hours: "09:00-19:00", mapUrl: "https://maps.app.goo.gl/gsSUqaMHnR338kwr6", notes: "從飯店步行15分鐘" }, 
@@ -507,7 +507,7 @@
             },
             {
                 date: "2/14", week: "(六)", dayTitle: "Day 3",
-                weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "10%", high: "13", low: "5" },
+                weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "20%", high: "15", low: "5" },
                 events: [
                     { 
                         time: "10:30", 
@@ -542,7 +542,6 @@
                         mapUrl: "https://maps.app.goo.gl/tNCATHA8hccCCk1K8",
                         notes: "飯店隔壁" 
                     },
-                    // 新增行程
                     { 
                         time: "18:00", 
                         title: "🍽️ 晚餐：うず潮屋 関内店", 
@@ -555,7 +554,7 @@
             },
             {
                 date: "2/15", week: "(日)", dayTitle: "Day 4",
-                weather: { icon: "fa-sun", color: "text-orange-500", status: "快晴", rain: "0%", high: "14", low: "4" },
+                weather: { icon: "fa-cloud-sun", color: "text-orange-400", status: "曇時々晴", rain: "40%", high: "16", low: "6" },
                 events: [
                     { 
                         time: "09:00", 
@@ -595,8 +594,8 @@
                 date: "2/16", week: "(一)", dayTitle: "Day 5",
                 extra: "除夕",
                 weatherSplit: {
-                    left: { title: "橫濱", icon: "fa-cloud", color: "text-stone-400", status: "曇り", rain: "30%", high: "10", low: "4" },
-                    right: { title: "河口湖", icon: "fa-snowflake", color: "text-blue-300", status: "雪", rain: "60%", high: "3", low: "-2" }
+                    left: { title: "橫濱", icon: "fa-cloud-sun-rain", color: "text-blue-400", status: "晴時々雨", rain: "60%", high: "16", low: "9" },
+                    right: { title: "河口湖", icon: "fa-cloud-sun-rain", color: "text-blue-400", status: "晴時々雨", rain: "60%", high: "11", low: "-2" }
                 },
                 events: [
                     { time: "", title: "🚗 前往河口湖", type: "transport", notes: "包車前往，時間彈性，準備辦理退房" },
@@ -607,7 +606,7 @@
             {
                 date: "2/17", week: "(二)", dayTitle: "Day 6",
                 extra: "初一",
-                weather: { icon: "fa-mountain-sun", color: "text-orange-400", status: "晴れ", rain: "10%", high: "5", low: "-3" },
+                weather: { icon: "fa-cloud-sun", color: "text-orange-400", status: "曇時々晴", rain: "40%", high: "11", low: "-3" },
                 events: [
                     { time: "09:00", title: "⛩️ 富士御室浅間神社", type: "spot", location: "Fujiomurosengen Shrine", hours: "09:00-16:00", mapUrl: "https://maps.app.goo.gl/wQEHmxRdc6X242a48", notes: "新年參拜。參拜後搭公車到河口湖站約 30 分鐘" },
                     { time: "13:00", title: "🛍️ 河口湖車站週邊購物", type: "shopping", notes: "包含：食パン専門店FUJISAN SHOKUPAN (11:00-18:00)；富士山ぷりん (11:00-18:00)", location: "Kawaguchiko Station area", mapUrl: "https://maps.app.goo.gl/TZMj7FK4eUaVkibf9" }
@@ -844,6 +843,7 @@
 </body>
 
 </html>
+
 
 
 
