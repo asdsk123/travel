@@ -476,44 +476,65 @@
         const tripData = [
             {
                 date: "2/12", week: "(四)", dayTitle: "Day 1",
-                weather: { icon: "fa-cloud-showers-heavy", color: "text-blue-400", status: "曇時々雨", rain: "50%", high: "12", low: "5" },
+                weather: { icon: "fa-cloud-showers-heavy", color: "text-blue-400", status: "曇時々雨", rain: "70%", high: "11", low: "5" },
                 events: [
                     { time: "13:30", title: "🛬 抵達 成田機場", type: "transport", notes: "準備入境、領取行李" },
                     { time: "16:00", title: "🏨 抵達飯店 (Westin)", type: "hotel", location: "ウェスティンホテル横浜", mapUrl: "https://maps.app.goo.gl/pfBbnYJjdAkG6RvF8", notes: "Check-in 休息一下" },
                     { time: "18:00", title: "🍽️ 晚餐自理", type: "food", notes: "Merengue みなとみらい店", location: "Yokohama Takashimaya / McDonald's", mapUrl: "https://maps.app.goo.gl/zFAqmknWmoteMuuY8" }
                 ]
             },
-            {
-                date: "2/13", week: "(五)", dayTitle: "Day 2",
-                weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "40%", high: "13", low: "3" },
-events: [
-                     { 
-                        time: "10:00", 
-                        title: "🧱 紅磚倉庫 / 泡麵博物館", 
-                        type: "spot", 
-                        notes: "橫濱赤レンガ倉庫 (11：00-20：00)\n從飯店坐公車約25分鐘\n預估滯留到12點左右", 
-                        location: "Yokohama Red Brick Warehouse / Cupnoodles Museum",
-                        mapUrl: "https://maps.app.goo.gl/2Q4DViqAJRksLvjR7",
-                        extraLinks: [
-                            { title: "Strawberry Festival2026", url: "https://www.yokohama-akarenga.jp/strawberryfes/", hours: "10:00~18:00", fee: "500円" }
-                        ]
-                    },
-                    { time: "12:30", title: "🏛️ 横浜市開港記念会館 （ジャックの塔）", type: "spot", location: "Yokohama Archives of History", hours: "09:30-17:00", mapUrl: "https://maps.app.goo.gl/GYgTX9yU72vA3N6c6", notes: "包含：橫濱市開港記念會館" },
-                    },
-                    { time: "14:00", title: "🍽️ 午餐時間", type: "food", notes: "餐廳：シンシヤ (17:00-23:00) 或 La Figlia Del Presidente (11:30-15:00 / 17:00-22:00)", mapUrl: "https://maps.app.goo.gl/VpfzxBNpbKpy9EDN9" , notes: "注意營業時間" },
-                   { 
-                        time: "15:00", 
-                        title: "🏛️ 圖坦卡門博物館", 
-                        type: "spot", 
-                        location: "The Westin Yokohama (nearby)", 
-                        hours: "11:00-18:00", 
-                        mapUrl: "https://maps.app.goo.gl/tNCATHA8hccCCk1K8",
-                        notes: "飯店隔壁" 
-                    },
-                     { time: "16:00", title: "🪐 星空投影", type: "spot", location: "コニカミノルタプラネタリアYOKOHAMA", hours: "10:00-21:00", mapUrl: "https://maps.app.goo.gl/2LyDhMKE9fm6fXmaA", notes: "需確認上映時間" }
-                ]
-            },
-            {
+// --- Day 2 修正部分 ---
+{
+    date: "2/13", week: "(五)", dayTitle: "Day 2",
+    weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "20%", high: "13", low: "3" },
+    events: [
+         { 
+            time: "10:00", 
+            title: "🍓 紅磚倉庫", 
+            type: "spot", 
+            notes: "橫濱赤レンガ倉庫 (11：00-20：00)\n從飯店坐公車約25分鐘\n預估滯留到12點左右", 
+            location: "Yokohama Red Brick Warehouse / Cupnoodles Museum",
+            mapUrl: "https://maps.app.goo.gl/2Q4DViqAJRksLvjR7",
+            extraLinks: [
+                { title: "Strawberry Festival2026", url: "https://www.yokohama-akarenga.jp/strawberryfes/", hours: "10:00~18:00", fee: "500円" }
+            ]
+        },
+        { 
+            time: "12:30", 
+            title: "🏛️ 横浜市開港記念會館", 
+            type: "spot", 
+            location: "Yokohama Archives of History", 
+            hours: "09:30-17:00", 
+            mapUrl: "https://maps.app.goo.gl/GYgTX9yU72vA3N6c6", 
+            notes: "包含：橫濱市開港記念會館（ジャックの塔）" 
+        }, // 這裡原本多了一個括號，已修正
+        { 
+            time: "14:00", 
+            title: "🍽️ 午餐時間", 
+            type: "food", 
+            notes: "餐廳建議：シンシヤ (17:00-23:00) 或 La Figlia Del Presidente (11:30-15:00)\n注意營業時間", 
+            mapUrl: "https://maps.app.goo.gl/VpfzxBNpbKpy9EDN9" 
+        },
+        { 
+            time: "15:00", 
+            title: "🏛️ 圖坦卡門博物館", 
+            type: "spot", 
+            location: "The Westin Yokohama (nearby)", 
+            hours: "11:00-18:00", 
+            mapUrl: "https://maps.app.goo.gl/tNCATHA8hccCCk1K8",
+            notes: "飯店隔壁" 
+        },
+        { 
+            time: "16:00", 
+            title: "🪐 星空投影", 
+            type: "spot", 
+            location: "コニカミノルタプラネタリアYOKOHAMA", 
+            hours: "10:00-21:00", 
+            mapUrl: "https://maps.app.goo.gl/2LyDhMKE9fm6fXmaA", 
+            notes: "需確認上映時間" 
+        }
+    ]
+},            {
                 date: "2/14", week: "(六)", dayTitle: "Day 3",
                 weather: { icon: "fa-cloud-sun", color: "text-orange-300", status: "晴時々曇", rain: "20%", high: "15", low: "5" },
                 events: [
@@ -593,8 +614,8 @@ events: [
                 date: "2/16", week: "(一)", dayTitle: "Day 5",
                 extra: "除夕",
                 weatherSplit: {
-                    left: { title: "橫濱", icon: "fa-cloud-sun-rain", color: "text-blue-400", status: "晴時々雨", rain: "60%", high: "16", low: "9" },
-                    right: { title: "河口湖", icon: "fa-cloud-sun-rain", color: "text-blue-400", status: "晴時々雨", rain: "60%", high: "11", low: "-2" }
+                    left: { title: "橫濱", icon: "fa-cloud-sun-rain", color: "text-blue-400", status: "晴時々雨", rain: "30%", high: "16", low: "9" },
+                    right: { title: "河口湖", icon: "fa-cloud-sun", color: "text-orange-400", status: "曇時々晴", rain: "40%", high: "10", low: "0" }
                 },
                 events: [
                     { time: "", title: "🚗 前往河口湖", type: "transport", notes: "包車前往，時間彈性，準備辦理退房" },
@@ -842,6 +863,8 @@ events: [
 </body>
 
 </html>
+
+
 
 
 
